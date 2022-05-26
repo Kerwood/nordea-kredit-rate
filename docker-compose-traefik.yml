@@ -1,0 +1,55 @@
+version: '3.9'
+
+networks:
+  nordea-net:
+  traefik-proxy:
+    external: true
+
+volumes:
+  prometheus-data:
+  grafana-data:
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.35.0
+    container_name: nordea-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=1y'
+    expose:
+      - 9090
+    networks:
+      - nordea-net
+
+  nordea-rate-metrics:
+    image: nordea-rate-metrics
+    container_name: nordea-rate-metrics
+    restart: unless-stopped
+    expose:
+      - 8080
+    networks:
+      - nordea-net
+
+  grafana:
+    image: grafana/grafana:8.5.0
+    container_name: nordea-grafana
+    restart: unless-stopped
+    volumes:
+      - grafana-data:/var/lib/grafana
+    expose:
+      - 3000
+    networks:
+      - traefik-proxy
+      - nordea-net
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.nordea-kredit-rate.loadbalancer.server.port=3000
+      - traefik.http.routers.nordea-kredit-rate.rule=Host(`nordea.example.com`)
+      - traefik.http.routers.nordea-kredit-rate.tls.certresolver=le
+      - traefik.http.routers.nordea-kredit-rate.entrypoints=websecure
+      - traefik.docker.network=traefik-proxy
