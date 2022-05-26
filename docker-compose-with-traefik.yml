@@ -27,11 +27,13 @@ services:
       - nordea-net
 
   nordea-rate-metrics:
-    image: nordea-rate-metrics
+    image: kerwood/nordea-rate-metrics
     container_name: nordea-rate-metrics
     restart: unless-stopped
+    environment:
+      ROCKET_ADDRESS: 0.0.0.0
     expose:
-      - 8080
+      - 8000
     networks:
       - nordea-net
 

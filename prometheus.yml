@@ -10,4 +10,9 @@ scrape_configs:
   - job_name: 'nordea-rate-metrics'
     scrape_interval: 5m
     static_configs:
-      - targets: ['nordea-rate-metrics:8080']
+      - targets: ['nordea-rate-metrics:8000']
+    metric_relabel_configs:
+      - source_labels: [instance]
+        regex: '([^:]+):.+'
+        target_label: 'instance'
+        replacement: '$1'
