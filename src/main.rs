@@ -1,40 +1,52 @@
-use reqwest;
-use serde::Deserialize;
-use serde::Serialize;
-use warp::{Filter, Rejection, Reply};
+#[macro_use]
+extern crate rocket;
 
-pub type Bonds = Vec<Bond>;
+use reqwest;
+use rocket::{http, request, response};
+use serde::{Deserialize, Serialize};
+use thiserror::Error;
+
+type Bonds = Vec<Bond>;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct Bond {
-    pub rate: String,
-    pub fund_name: String,
-    pub loan_period_max: String,
-    pub repayment_freedom_max: String,
-    pub isin_code: String,
+struct Bond {
+    rate: String,
+    fund_name: String,
+    loan_period_max: String,
+    repayment_freedom_max: String,
+    isin_code: String,
 }
 
-#[tokio::main]
-async fn main() {
-    let message = "This application grabs the bonds rates from https://www.nordea.dk/privat/produkter/boliglaan/Kurser-realkreditlaan-kredit.html and displays them as a Prometheus metric endpoint at /metrics";
-
-    let root = warp::path::end().map(move || message);
-    let metrics = warp::path!("metrics").and_then(get_bonds);
-
-    let routes = warp::get().and(root.or(metrics));
-
-    println!("Started on port 8080");
-    warp::serve(routes).run(([0, 0, 0, 0], 8080)).await;
+#[derive(Error, Debug)]
+enum CustomError {
+    #[error("Reqwest Error")]
+    Reqwest(#[from] reqwest::Error),
 }
 
-async fn get_bonds() -> Result<impl Reply, Rejection> {
+impl<'r, 'o: 'r> response::Responder<'r, 'o> for CustomError {
+    fn respond_to(self, req: &request::Request) -> response::Result<'o> {
+        match self {
+            Self::Reqwest(error) => {
+                error!("{}", error);
+                http::Status::InternalServerError.respond_to(req)
+            }
+        }
+    }
+}
+
+#[get("/")]
+fn index() -> &'static str {
+    "nordea-kredit-rate metrics"
+}
+
+#[get("/metrics")]
+async fn metrics() -> Result<String, CustomError> {
     let bonds = reqwest::get("https://ebolig.nordea.dk/wemapp/api/credit/fixedrate/bonds.json")
-        .await
-        .unwrap()
+        .await?
+        .error_for_status()?
         .json::<Bonds>()
-        .await
-        .unwrap(); // TODO: Fix unwrap
+        .await?;
 
     let mut html: Vec<String> = Vec::new();
 
@@ -59,4 +71,9 @@ async fn get_bonds() -> Result<impl Reply, Rejection> {
     }
     let result = html.join("\n");
     Ok(result)
+}
+
+#[launch]
+fn rocket() -> _ {
+    rocket::build().mount("/", routes![index, metrics])
 }

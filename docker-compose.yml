@@ -18,6 +18,7 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=1y'
     expose:
       - 9090
     networks:
@@ -27,8 +28,8 @@ services:
     image: kerwood/nordea-rate-metrics
     container_name: nordea-rate-metrics
     restart: unless-stopped
-    expose:
-      - 8080
+    ports:
+      - 8080:8080
     networks:
       - monitoring
 
