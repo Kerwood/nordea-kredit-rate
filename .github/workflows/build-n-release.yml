@@ -66,9 +66,9 @@ jobs:
 
       - name: Build Image and Push
         run: |
-          docker build -t kerwood/nordea-kredit-rate .
-          docker tag kerwood/nordea-kredit-rate kerwood/nordea-kredit-rate:${{github.ref_name}}
+          docker build -t kerwood/nordea-rate-metrics .
+          docker tag kerwood/nordea-rate-metrics kerwood/nordea-rate-metrics:${{github.ref_name}}
           docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
           echo ${{github.ref_name}}
-          docker push kerwood/nordea-kredit-rate
-          docker push kerwood/nordea-kredit-rate:${{github.ref_name}}
+          docker push kerwood/nordea-rate-metrics
+          docker push kerwood/nordea-rate-metrics:${{github.ref_name}}
