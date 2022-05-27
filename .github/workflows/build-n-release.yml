@@ -9,7 +9,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  app-name: 'dhcpctl'
+  app-name: 'nordea-rate-metrics'
 
 jobs:
   rustfmt:
@@ -20,6 +20,7 @@ jobs:
       - run: cargo fmt -- --check
 
   build-linux:
+    needs: rustfmt
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -55,6 +56,13 @@ jobs:
           asset_name: ${{ env.app-name }}-x86_64-unknown-linux-musl
           tag: ${{ github.ref }}
           overwrite: true
+
+  build-image:
+    needs: rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
 
       - name: Build Image and Push
         run: |
