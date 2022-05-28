@@ -8,7 +8,7 @@ scrape_configs:
       - targets: ['localhost:9090']
 
   - job_name: 'nordea-rate-metrics'
-    scrape_interval: 5m
+    scrape_interval: 2m
     static_configs:
       - targets: ['nordea-rate-metrics:8000']
     metric_relabel_configs:

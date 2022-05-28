@@ -13,7 +13,7 @@ services:
     container_name: prometheus
     restart: unless-stopped
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -30,6 +30,7 @@ services:
     restart: unless-stopped
     environment:
       ROCKET_ADDRESS: 0.0.0.0
+      ROCKET_LOG_LEVEL: debug
     expose:
       - 8000
     networks:
@@ -41,6 +42,9 @@ services:
     restart: unless-stopped
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./configs/grafana-datasource.yml:/etc/grafana/provisioning/datasources/grafana-datasource.yml
+      - ./configs/grafana-dashboard.yml:/etc/grafana/provisioning/dashboards/grafana-dashboard.yml
+      - ./configs/nordea-rate-metrics.json:/var/lib/grafana/dashboards/nordea-rate-metrics.json
     ports:
       - 3000:3000
     networks:
