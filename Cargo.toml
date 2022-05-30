@@ -12,9 +12,8 @@ tokio = { version = "1.18.2", features = ["full"] }
 openssl = { version = "0.10.40", features = ["vendored"] }
 rocket = "0.5.0-rc.2"
 thiserror = "1.0.31"
-chrono = "0.4.19"
 log = "0.4.17"
-env_logger = "0.9.0"
+pretty_env_logger = "0.4"
 
 [profile.release]
 lto = true

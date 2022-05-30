@@ -1,13 +1,13 @@
 #[macro_use]
 extern crate rocket;
 
-use chrono::Local;
-use env_logger::Builder;
-use log;
+#[macro_use]
+extern crate log;
+
+use pretty_env_logger;
 use reqwest;
 use rocket::{http, request, response};
 use serde::{Deserialize, Serialize};
-use std::io::Write;
 use thiserror::Error;
 
 type Bonds = Vec<Bond>;
@@ -79,22 +79,6 @@ async fn metrics() -> Result<String, CustomError> {
 
 #[launch]
 fn rocket() -> _ {
-    add_timestamps_for_logs();
-    println!("Application started....");
+    pretty_env_logger::init_timed();
     rocket::build().mount("/", routes![index, metrics])
-}
-
-fn add_timestamps_for_logs() {
-    Builder::new()
-        .format(|buf, record| {
-            writeln!(
-                buf,
-                "{} [{}] - {}",
-                Local::now().format("%Y-%m-%dT%H:%M:%S"),
-                record.level(),
-                record.args()
-            )
-        })
-        .filter(None, log::LevelFilter::Info)
-        .init();
 }
